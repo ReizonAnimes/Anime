@@ -7,7 +7,14 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
+      background-color: black; /* Definir o fundo da página como preto */
+      color: white; /* Cor do texto como branco para contraste */
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center; /* Centralizar horizontalmente */
+      align-items: center; /* Centralizar verticalmente */
+      height: 100vh; /* Altura total da tela */
     }
     #erro {
       display: none;
@@ -22,7 +29,8 @@
     }
     iframe {
       width: 100%;
-      height: 100vh;
+      height: auto;
+      aspect-ratio: 16 / 9; /* Mantém a proporção de 16:9 para o vídeo */
       border: none;
     }
   </style>
@@ -113,7 +121,7 @@
 
       // Criar o iframe com a URL do vídeo
       const iframe = document.createElement('iframe');
-      iframe.src = `data:text/html,<html><body><video controls autoplay style="width:100%; height:100vh;" src="${episodioEncontrado.url}"></video></body></html>`;
+      iframe.src = `data:text/html,<html><body><video controls autoplay style="width:100%; height:auto;" src="${episodioEncontrado.url}"></video></body></html>`;
       document.getElementById('video').innerHTML = ''; // Limpa o conteúdo anterior
       document.getElementById('video').appendChild(iframe);
     };
