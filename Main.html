@@ -7,14 +7,15 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: black; /* Definir o fundo da página como preto */
-      color: white; /* Cor do texto como branco para contraste */
+      background-color: black; /* Fundo preto */
+      color: white; /* Texto branco */
       margin: 0;
       padding: 0;
       display: flex;
-      justify-content: center; /* Centralizar horizontalmente */
-      align-items: center; /* Centralizar verticalmente */
+      justify-content: center; /* Centraliza horizontalmente */
+      align-items: center; /* Centraliza verticalmente */
       height: 100vh; /* Altura total da tela */
+      flex-direction: column;
     }
     #erro {
       display: none;
@@ -31,13 +32,13 @@
       width: 100%;
       height: 100%;
       border: none;
-      aspect-ratio: 16 / 9; /* Mantém a proporção de 16:9 para o vídeo */
+      aspect-ratio: 16 / 9; /* Mantém a proporção 16:9 */
     }
   </style>
 </head>
 <body>
 
-  <!-- Área para exibir o erro -->
+  <!-- Área para exibir erros -->
   <div id="erro">
     <p id="mensagemErro"></p>
   </div>
@@ -46,91 +47,68 @@
   <div id="video"></div>
 
   <script>
-    // Lista de animes (seu JSON)
-    const animes = [
-      {
-        "titulo": "Darling in the Franxx",
-        "titulo_japones": "ダーリン・イン・ザ・フランキス",
-        "ano": 2018,
-        "episodios": 24,
-        "generos": ["Ação", "Drama", "Romance", "Ficção Científica", "Mecha"],
-        "nota": 7.2,
-        "sinopse": "Em um futuro distante, a humanidade foi quase exterminada por criaturas gigantes chamadas Urrossauros...",
-        "estudio": "Trigger, A-1 Pictures, CloverWorks",
-        "diretor": "Atsushi Nishigori",
-        "roteirista": "Naotaka Hayashi",
-        "público": "Shounen",
-        "streaming": ["Crunchyroll", "Funimation"],
-        "episodios": [
-          {
-            "name": "Episódio 1 - Sozinho e Solitário",
-            "url": "https://www.googleapis.com/drive/v3/files/1ut0IBGX6I2oq6kevZB884Xpg4dw_S3rN?alt=media&key=AIzaSyDLCCdlnt8IPslQ4UDEk5uRW1bvUevheZE",
-            "ep": "ep1",
-            "temp": ["temp1", "Temporada 1"]
-          },
-          {
-            "name": "Episódio 2 - Novo Início",
-            "url": "https://www.googleapis.com/drive/v3/files/1lcbCgkcxdlhqr12HZGYP4Ezk0hvmNmDa?alt=media&key=AIzaSyDLCCdlnt8IPslQ4UDEk5uRW1bvUevheZE",
-            "ep": "ep2",
-            "temp": ["temp1", "Temporada 1"]
-          }
-        ]
-      }
-    ];
-
-    // Função para buscar anime e episódio
-    const buscarAnime = () => {
+    const buscarAnime = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const nome = urlParams.get('nome');
       const episodio = urlParams.get('episodio');
 
       if (!nome || !episodio) {
-        document.getElementById('erro').style.display = 'block';
-        document.getElementById('mensagemErro').textContent = 'Faltaram parâmetros: nome ou episodio.';
+        exibirErro('Faltaram parâmetros: nome ou episodio.');
         return;
       }
 
-      // Formatar o nome para minúsculo e substituir espaços por hífens
-      const formatarNome = (nome) => nome.toLowerCase().replace(/\s+/g, '-');
-      const nomeFormatado = formatarNome(nome);
+      try {
+        // Busca os dados do Pastebin
+        const response = await fetch('https://pastebin.com/raw/SLt43GJt');
+        if (!response.ok) throw new Error('Erro ao carregar a API.');
+        const animes = await response.json();
 
-      // Buscar o anime na lista
-      const anime = animes.find(a => formatarNome(a.titulo) === nomeFormatado);
-      if (!anime) {
-        document.getElementById('erro').style.display = 'block';
-        document.getElementById('mensagemErro').textContent = `Anime '${nome}' não encontrado.`;
-        return;
+        // Formatar nome para minúsculo e substituir espaços por hífens
+        const formatarNome = (n) => n.toLowerCase().replace(/\s+/g, '-');
+        const nomeFormatado = formatarNome(nome);
+
+        // Buscar o anime
+        const anime = animes.find(a => formatarNome(a.titulo) === nomeFormatado);
+        if (!anime) {
+          exibirErro(`Anime '${nome}' não encontrado.`);
+          return;
+        }
+
+        // Separar o episódio e a temporada
+        const [temp, ep] = episodio.split('-');
+        if (!temp || !ep) {
+          exibirErro('Formato de episódio inválido.');
+          return;
+        }
+
+        // Buscar o episódio correto
+        const episodioEncontrado = anime.episodios.find(e => e.ep === ep && e.temp.includes(temp));
+        if (!episodioEncontrado) {
+          exibirErro(`Episódio '${episodio}' não encontrado para o anime '${nome}'.`);
+          return;
+        }
+
+        // Criar o iframe com a URL do vídeo
+        const iframe = document.createElement('iframe');
+        iframe.src = `data:text/html,<html><body style='margin:0;'><video controls autoplay style='width:100%; height:auto;' src='${episodioEncontrado.url}'></video></body></html>`;
+        iframe.allowFullscreen = true;
+        document.getElementById('video').innerHTML = ''; // Limpa o conteúdo anterior
+        document.getElementById('video').appendChild(iframe);
+
+      } catch (error) {
+        exibirErro('Erro ao carregar os dados da API.');
+        console.error(error);
       }
-
-      // Separar o episódio e a temporada
-      const [temp, ep] = episodio.split('-');  // temp1 e ep1
-      if (!temp || !ep) {
-        document.getElementById('erro').style.display = 'block';
-        document.getElementById('mensagemErro').textContent = 'Formato de episódio inválido.';
-        return;
-      }
-
-      // Filtrar episódios pela temporada e número do episódio
-      const episodioEncontrado = anime.episodios.find(e => e.ep === ep && e.temp.includes(temp));
-      
-      if (!episodioEncontrado) {
-        document.getElementById('erro').style.display = 'block';
-        document.getElementById('mensagemErro').textContent = `Episódio '${episodio}' não encontrado para o anime '${nome}'.`;
-        return;
-      }
-
-      // Criar o iframe com a URL do vídeo e permitir tela cheia
-      const iframe = document.createElement('iframe');
-      iframe.src = `data:text/html,<html><body><video controls autoplay fullscreen style="width:100%; height:auto;" src="${episodioEncontrado.url}"></video></body></html>`;
-      iframe.allowFullscreen = true;  // Habilita o fullscreen para o iframe
-      document.getElementById('video').innerHTML = ''; // Limpa o conteúdo anterior
-      document.getElementById('video').appendChild(iframe);
     };
 
-    // Função chamada ao carregar a página
-    window.onload = () => {
-      buscarAnime();
+    // Função para exibir mensagens de erro
+    const exibirErro = (mensagem) => {
+      document.getElementById('erro').style.display = 'block';
+      document.getElementById('mensagemErro').textContent = mensagem;
     };
+
+    // Executa a busca ao carregar a página
+    window.onload = buscarAnime;
   </script>
 
 </body>
