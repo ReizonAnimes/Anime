@@ -29,9 +29,9 @@
     }
     iframe {
       width: 100%;
-      height: auto;
-      aspect-ratio: 16 / 9; /* Mantém a proporção de 16:9 para o vídeo */
+      height: 100%;
       border: none;
+      aspect-ratio: 16 / 9; /* Mantém a proporção de 16:9 para o vídeo */
     }
   </style>
 </head>
@@ -119,9 +119,10 @@
         return;
       }
 
-      // Criar o iframe com a URL do vídeo
+      // Criar o iframe com a URL do vídeo e permitir tela cheia
       const iframe = document.createElement('iframe');
       iframe.src = `data:text/html,<html><body><video controls autoplay fullscreen style="width:100%; height:auto;" src="${episodioEncontrado.url}"></video></body></html>`;
+      iframe.allowFullscreen = true;  // Habilita o fullscreen para o iframe
       document.getElementById('video').innerHTML = ''; // Limpa o conteúdo anterior
       document.getElementById('video').appendChild(iframe);
     };
