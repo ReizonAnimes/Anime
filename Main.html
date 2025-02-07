@@ -121,7 +121,7 @@
 
       // Criar o iframe com a URL do vídeo
       const iframe = document.createElement('iframe');
-      iframe.src = `data:text/html,<html><body><video controls autoplay style="width:auto; height:100%;" src="${episodioEncontrado.url}"></video></body></html>`;
+      iframe.src = `data:text/html,<html><body><video controls autoplay fullscreen style="width:100%; height:auto;" src="${episodioEncontrado.url}"></video></body></html>`;
       document.getElementById('video').innerHTML = ''; // Limpa o conteúdo anterior
       document.getElementById('video').appendChild(iframe);
     };
