@@ -3,12 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reprodutor de Vídeo</title>
+  <title>Exibição do Episódio</title>
 </head>
 <body>
-  <video controls autoplay width="100%" height="auto">
-    <source src="https://lightspeedst.net/s3/mp4/ansatsu-kyoushitsu-dublado/sd/1.mp4" type="video/mp4">
-    Seu navegador não suporta a tag de vídeo.
-  </video>
+  <h1>Exibição do Episódio</h1>
+  
+  <div id="erro" style="display: none; color: red;">
+    <h2>Erro:</h2>
+    <p id="mensagemErro"></p>
+  </div>
+
+  <div id="video" style="display: none;">
+    <h2>Vídeo do Episódio</h2>
+    <video controls width="100%" id="videoPlayer">
+      <source id="videoSource" type="video/mp4">
+      Seu navegador não suporta a tag de vídeo.
+    </video>
+  </div>
+
+  <script>
+    // Dados de exemplo (substitua com sua fonte de dados real)
+    const animes = [{
+      "titulo": "Darling in the Franxx",
+      "titulo_japones": "ダーリン・イン・ザ・フランキス",
+      "ano": 2018,
+      "episodios": 24,
+      "generos": ["Ação", "Drama", "Romance", "Ficção Científica", "Mecha"],
+      "nota": 7.2,
+      "sinopse": "Em um futuro distante, a humanidade foi quase exterminada por criaturas gigantes chamadas Urrossauros. Os sobreviventes vivem em cidades móveis chamadas Plantations e usam robôs gigantes chamados Franxx para combatê-los. Hiro, um jovem piloto que perdeu sua confiança, encontra Zero Two, uma misteriosa garota com chifres. Juntos, eles formam uma parceria única para pilotar o Franxx, enfrentando desafios que vão além das batalhas.",
+      "estudio": "Trigger, A-1 Pictures, CloverWorks",
+      "diretor": "Atsushi Nishigori",
+      "roteirista": "Naotaka Hayashi",
+      "público": "Shounen",
+      "streaming": ["Crunchyroll", "Funimation"],
+      "episodios": [{
+        "name": "Episódio 1 - Sozinho e Solitário",
+        "url": "https://www.googleapis.com/drive/v3/files/1ut0IBGX6I2oq6kevZB884Xpg4dw_S3rN?alt=media&key=AIzaSyDLCCdlnt8IPslQ4UDEk5uRW1bvUevheZE",
+        "ep": "ep1",
+        "temp": ["temp1", "Temporada 1"]
+      }]
+    }];
+
+    // Função que busca o anime e episódio baseado na URL
+    function buscarAnime() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const nome = urlParams.get('nome');
+      const episodio = urlParams.get('episodio');
+
+      if (!nome || !episodio) {
+        // Se faltarem parâmetros, exibe um erro
+        document.getElementById('erro').style.display = 'block';
+        document.getElementById('mensagemErro').textContent = 'Faltaram parâmetros: nome ou episodio.';
+        return;
+      }
+
+      // Função para transformar o nome em minúsculo e substituir espaços por hífens
+      const formatarNome = (nome) => nome.toLowerCase().replace(/\s+/g, '-');
+
+      // Formata o nome do anime na URL para comparações
+      const nomeFormatado = formatarNome(nome);
+
+      // Busca o anime pelo nome formatado
+      const anime = animes.find(a => formatarNome(a.titulo) === nomeFormatado);
+      
+      if (!anime) {
+        // Se o anime não for encontrado
+        document.getElementById('erro').style.display = 'block';
+        document.getElementById('mensagemErro').textContent = `Anime "${nome}" não encontrado.`;
+        return;
+      }
+
+      // Filtra os episódios com base no formato "temp1-ep1"
+      const [temp, ep] = episodio.split('-');
+      const episodioEncontrado = anime.episodios.find(e => e.ep === `ep${ep}` && e.temp.includes(temp));
+
+      if (!episodioEncontrado) {
+        // Se o episódio não for encontrado
+        document.getElementById('erro').style.display = 'block';
+        document.getElementById('mensagemErro').textContent = `Episódio "${episodio}" não encontrado para o anime "${nome}".`;
+        return;
+      }
+
+      // Se o episódio foi encontrado, exibe o vídeo
+      document.getElementById('video').style.display = 'block';
+      document.getElementById('videoSource').src = episodioEncontrado.url;
+      document.getElementById('videoPlayer').load();
+    }
+
+    // Chama a função de busca quando a página carregar
+    buscarAnime();
+  </script>
 </body>
 </html>
